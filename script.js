@@ -134,30 +134,21 @@ $(document).ready(function() {
     function canMove(maze, i, j) {
         let directions = [];
         if(maze?.[i]?.[j] != undefined) {
-            switch(maze[i][j]) {
-                case "empty":
-                    directions.push("up");
-                    directions.push("left");
-                    break;
-                case "wall-left":
-                    directions.push("up");
-                    break;
-                case "wall-up":
-                    directions.push("left");
-                    break;
-                case "wall-both":
-                    break;
-                default: 
-                    break;
+            if(!(maze[i][j] === "wall-up" || maze[i][j] === "wall-both") && j > 0 ) {
+                directions.push("up");
+            }
+            if(!(maze[i][j] === "wall-left" || maze[i][j] === "wall-both") && i > 0 ) {
+                directions.push("left");
             }
         }
+
         if(maze?.[i]?.[j+1] != undefined) {
-            if(!(maze[i][j+1] === "wall-up" || maze[i][j+1] === "wall-both")) {
+            if(!(maze[i][j+1] === "wall-up" || maze[i][j+1] === "wall-both") && j < ROWS - 1 ) {
                 directions.push("down");
             }
         }
         if(maze?.[i+1]?.[j] != undefined) {
-            if(!(maze[i+1][j] === "wall-left" || maze[i+1][j] === "wall-both")) {
+            if(!(maze[i+1][j] === "wall-left" || maze[i+1][j] === "wall-both") && i < COLS - 1 ) {
                 directions.push("right");
             }
         }
