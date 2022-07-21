@@ -10,6 +10,8 @@ $(document).ready(function() {
     let button = document.getElementById('button');
     let score = document.getElementById('score');
     let restart = document.getElementById('restart');
+    let body = document.getElementById('body');
+    body.height = 1000;
     let restarts = 0;
     let scoreValue = 0;
     let currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
@@ -64,7 +66,7 @@ $(document).ready(function() {
         drawWall(8,8,"horizontal", color = "#000000" , 3);
         */
         restarts += 1;
-        restart.innerText = "Restars: " + restarts;
+        restart.innerText = "Restarts: " + restarts;
         // load maze
         currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
         // display maze
@@ -74,11 +76,19 @@ $(document).ready(function() {
         displayMaze(currentMaze);
     });
 
-    document.addEventListener('keyup', (e) => {
-        if(e.code === "ArrowUp" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
-        if(e.code === "ArrowDown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
-        if(e.code === "ArrowRight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
-        if(e.code === "ArrowLeft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
+    // mobile inputs 
+    var hammertime = new Hammer(body);
+    hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+    hammertime.on('swipeleft swiperight swipeup swipedown', function(ev) {
+        if(ev.type === "swipeup" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
+        if(ev.type === "swipedown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
+        if(ev.type === "swiperight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
+        if(ev.type === "swipeleft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
+        update();
+    });
+
+
+    function update() {
         // display maze
         console.log(playerX + " " + playerY);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -105,6 +115,15 @@ $(document).ready(function() {
             drawSquare(targetX, targetY, "#00ff00");
             displayMaze(currentMaze);
         }
+    }
+
+    document.addEventListener('keyup', (e) => {
+        if(e.code === "ArrowUp" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
+        if(e.code === "ArrowDown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
+        if(e.code === "ArrowRight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
+        if(e.code === "ArrowLeft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
+        
+        update();
     });
 
     function getEmptyMaze() { 

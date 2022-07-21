@@ -2,12 +2,13 @@
 <head>
     <title>Title</title>
     <script src="./jquery-3.6.0.js"></script>
+    <script src="https://hammerjs.github.io/dist/hammer.js"></script>
 </head>
-<body style="background-color: #aad5f0;">
+<body style="background-color: #aad5f0;" id="body" >
 
     <div style="display: flex; justify-content: center;">
         <canvas id="canvas" style="background-color: #ffffff; margin: 10px; outline: #000000 solid;"></canvas> 
-        <button id="button" style="height: min-content;">Restart</button>
+        <button id="button"> <div>Restart</div></button>
         <div><h1>Stats </h1>
             <h1 id="score">Score: 0</h1>
             <h1 id="restart">Restarts: 0</h1>
