@@ -48,7 +48,16 @@ $(document).ready(function() {
     let targetX = Math.floor(Math.random() * ROWS);
     let targetY = Math.floor(Math.random() * COLS);
 
+    currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
+    // display maze
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawSquare(playerX, playerY, "#0000ff");
+    drawSquare(targetX, targetY, "#00ff00");
+    displayMaze(currentMaze);
+
+
     $("#button").click(function() {
+        console.log("clicked");
         /*
         drawSquare(8,8,"#ff0000");
         drawSquare(9,9,"#00ff00");
