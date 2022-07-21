@@ -8,7 +8,11 @@ const COLS = CANVAS_WIDTH / SQUARE_SIZE;
 $(document).ready(function() {
     let canvas = document.getElementById('canvas');
     let button = document.getElementById('button');
-    let currentMaze;
+    let score = document.getElementById('score');
+    let restart = document.getElementById('restart');
+    let restarts = 0;
+    let scoreValue = 0;
+    let currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
     let ctx = canvas.getContext("2d");
     canvas.setAttribute("height",CANVAS_HEIGHT);
     canvas.setAttribute("width",CANVAS_WIDTH);
@@ -38,33 +42,60 @@ $(document).ready(function() {
         }
     }
 
+    let playerX = 0;
+    let playerY = 0;
+
+    let targetX = Math.floor(Math.random() * ROWS);
+    let targetY = Math.floor(Math.random() * COLS);
+
     $("#button").click(function() {
         /*
         drawSquare(8,8,"#ff0000");
         drawSquare(9,9,"#00ff00");
         drawWall(8,8,"horizontal", color = "#000000" , 3);
         */
-        let playerX = 0;
-        let playerY = 0;
-
+        restarts += 1;
+        restart.innerText = "Restars: " + restarts;
+        // load maze
         currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
-
         // display maze
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawSquare(playerX, playerY, "#0000ff");
+        drawSquare(targetX, targetY, "#00ff00");
         displayMaze(currentMaze);
-        drawSquare(playerX,playerY, "#0000ff");
+    });
 
+    document.addEventListener('keyup', (e) => {
+        if(e.code === "ArrowUp" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
+        if(e.code === "ArrowDown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
+        if(e.code === "ArrowRight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
+        if(e.code === "ArrowLeft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
+        // display maze
+        console.log(playerX + " " + playerY);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawSquare(playerX, playerY, "#0000ff");
+        drawSquare(targetX, targetY, "#00ff00");
+        displayMaze(currentMaze);
+        if(playerX === targetX && playerY === targetY) {
 
-        document.addEventListener('keyup', (e) => {
-            if(e.code === "ArrowUp" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
-            if(e.code === "ArrowDown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
-            if(e.code === "ArrowRight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
-            if(e.code === "ArrowLeft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
-                    // display maze
+            console.log(targetX + " " + targetY);
+            scoreValue += 1;
+            score.innerText = "Score: " + scoreValue;
+
+            // reload maze
+            currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
+
+            playerX = 0;
+            playerY = 0;
+
+            targetX = Math.floor(Math.random() * ROWS);
+            targetY = Math.floor(Math.random() * COLS);
+            // display maze again
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSquare(playerX, playerY, "#0000ff");
+            drawSquare(targetX, targetY, "#00ff00");
             displayMaze(currentMaze);
-            drawSquare(playerX,playerY, "#0000ff");
-        });
+        }
     });
 
     function getEmptyMaze() { 
