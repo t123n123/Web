@@ -8,6 +8,7 @@ const COLS = CANVAS_WIDTH / SQUARE_SIZE;
 $(document).ready(function() {
     let canvas = document.getElementById('canvas');
     let button = document.getElementById('button');
+    let currentMaze;
     let ctx = canvas.getContext("2d");
     canvas.setAttribute("height",CANVAS_HEIGHT);
     canvas.setAttribute("width",CANVAS_WIDTH);
@@ -20,7 +21,7 @@ $(document).ready(function() {
         ctx.fillRect(i * SQUARE_SIZE, j*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
     }
 
-    // draws a line starting in the top-left color of cell (i,j) 
+    // draws a line starting in the top-left color of cell (i,j), direction either "vertical" or "horizontal"
     function drawWall(i, j, direction, color = "#000000", width = 5) {
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
@@ -36,13 +37,34 @@ $(document).ready(function() {
             ctx.stroke();
         }
     }
+
     $("#button").click(function() {
         /*
         drawSquare(8,8,"#ff0000");
         drawSquare(9,9,"#00ff00");
         drawWall(8,8,"horizontal", color = "#000000" , 3);
         */
-       displayMaze(getRandomMaze(["empty", "wall-vert", "wall-horz", "wall-both"]));
+        let playerX = 0;
+        let playerY = 0;
+
+        currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
+
+        // display maze
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        displayMaze(currentMaze);
+        drawSquare(playerX,playerY, "#0000ff");
+
+
+        document.addEventListener('keyup', (e) => {
+            if(e.code === "ArrowUp" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
+            if(e.code === "ArrowDown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
+            if(e.code === "ArrowRight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
+            if(e.code === "ArrowLeft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
+                    // display maze
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            displayMaze(currentMaze);
+            drawSquare(playerX,playerY, "#0000ff");
+        });
     });
 
     function getEmptyMaze() { 
@@ -63,27 +85,60 @@ $(document).ready(function() {
                 maze[i][j] = options[Math.floor(Math.random() * options.length)];
             }
         }
-        console.log(maze);
+        //console.log(maze);
         return maze;
     }
 
 
-    console.log(getEmptyMaze());
+    // return possible move directions from cell (i,j)
+    function canMove(maze, i, j) {
+        let directions = [];
+        if(maze?.[i]?.[j] != undefined) {
+            switch(maze[i][j]) {
+                case "empty":
+                    directions.push("up");
+                    directions.push("left");
+                    break;
+                case "wall-left":
+                    directions.push("up");
+                    break;
+                case "wall-up":
+                    directions.push("left");
+                    break;
+                case "wall-both":
+                    break;
+                default: 
+                    break;
+            }
+        }
+        if(maze?.[i]?.[j+1] != undefined) {
+            if(!(maze[i][j+1] === "wall-up" || maze[i][j+1] === "wall-both")) {
+                directions.push("down");
+            }
+        }
+        if(maze?.[i+1]?.[j] != undefined) {
+            if(!(maze[i+1][j] === "wall-left" || maze[i+1][j] === "wall-both")) {
+                directions.push("right");
+            }
+        }
+        return directions;
+    }
+
 
     function displayMaze(maze) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         for(let i = 0; i < maze.length; i++) {
             for(let j = 0; j < maze[i].length; j++) {
+                //console.log(i + " " + j + " " + canMove(maze,i,j));
                 switch(maze[i][j]) {
                     case "empty":
                         drawWall(i,j,"horizontal", color="#eeeeee", 3);
                         drawWall(i,j,"vertical", color="#eeeeee", 3);
                         break;
-                    case "wall-vert":
+                    case "wall-up":
                         drawWall(i,j,"horizontal", color="#eeeeee", 3);
                         drawWall(i,j,"vertical");
                         break;
-                    case "wall-horz":
+                    case "wall-left":
                         drawWall(i,j,"horizontal");
                         drawWall(i,j,"vertical", color="#eeeeee", 3);
                         break;
@@ -97,6 +152,5 @@ $(document).ready(function() {
             }
         }
     }
-
 
 });
