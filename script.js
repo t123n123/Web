@@ -5,6 +5,169 @@ const SQUARE_SIZE = 50;
 const ROWS = CANVAS_HEIGHT / SQUARE_SIZE;
 const COLS = CANVAS_WIDTH / SQUARE_SIZE;
 
+class Wall{
+    constructor(x, y, direction) {
+        this.x = x;
+        this.y = y;
+        this.direction = direction;
+    }
+
+    displayWall(canvas_context, color = "#000000", width = 5) {
+        canvas_context.strokeStyle = color;
+        canvas_context.lineWidth = width;
+        if(this.direction === 'h') {
+            canvas_context.beginPath();
+            canvas_context.moveTo(this.y * SQUARE_SIZE, this.x * SQUARE_SIZE);
+            canvas_context.lineTo((this.y + 1) * SQUARE_SIZE,this.x * SQUARE_SIZE);
+            canvas_context.stroke();
+        } else if (this.direction === 'v') {
+            canvas_context.beginPath();
+            canvas_context.moveTo(this.y * SQUARE_SIZE, this.x * SQUARE_SIZE);
+            canvas_context.lineTo(this.y * SQUARE_SIZE, (this.x + 1) * SQUARE_SIZE);
+            canvas_context.stroke();
+        }
+    }
+}
+
+function borderWalls(){
+    let walls = [];
+    // horizontal
+    for(let y = 0; y < COLS; y++) {
+        walls.push(new Wall(0, y, 'h'));
+        walls.push(new Wall(ROWS, y, 'h'));
+    }
+    // vertical
+    for(let x = 0; x < ROWS; x++) {
+        walls.push(new Wall(x, 0, 'v'));
+        walls.push(new Wall(x, COLS, 'v'));
+    }
+
+    for(let x = 1; x < ROWS; x++) {
+        for(let y = 0; y < COLS; y++) {
+            if(Math.random() >= 0.5 ? true : false) {
+                walls.push(new Wall(x, y, 'h'));
+            }
+        }
+    }
+
+    for(let x = 0; x < ROWS; x++) {
+        for(let y = 1; y < COLS; y++) {
+            if(Math.random() >= 0.5 ? true : false) {
+                walls.push(new Wall(x, y, 'v'));
+            }
+        }
+    }
+
+
+    return walls;
+}
+
+class Cell{
+    constructor(x, y, content = '', walls = []) {
+        this.x = x;
+        this.y = y;
+        this.content = content;
+        this.walls = walls;
+    }
+
+    displayCell(canvas_context) {
+        let color;
+        if(this.content === 'player') color = "#0000ff";
+        else if(this.content === 'target') color = "#00ff00";
+        else color = "#ffffff";
+        canvas_context.fillStyle = color;
+        canvas_context.fillRect(this.y * SQUARE_SIZE, this.x * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+        this.walls.forEach(e => e.displayWall(canvas_context));
+    }
+}
+
+class Maze{
+    constructor(walls = borderWalls(), cells = []) {
+        this.cells = [];
+        for(let x = 0; x < ROWS; x++) {
+            this.cells.push([]);
+            for(let y = 0; y < COLS; y++) {
+                this.cells[x].push(new Cell(x, y, [], []));
+            }
+        }
+
+        for(let i = 0; i < cells.length; i++) {
+            let x = cells[i].x , y = cells[i].y;
+            this.cells[x][y].content = cells[i].content;
+        }
+
+        for(let i = 0; i < walls.length; i++) {
+            console.log(walls[i]);
+            if(walls[i].direction === 'h') {
+                let x, y;    
+                x = walls[i].x;
+                y = walls[i].y;
+                console.log( x + " " + y + " " + (x - 1) + " " + y);
+                if(x >= 0 && x < ROWS && y >= 0 && y < COLS) {
+                    this.cells[x][y].walls.push(walls[i]);
+                }
+                x = walls[i].x - 1;
+                y = walls[i].y;
+                if(x >= 0 && x < ROWS && y >= 0 && y < COLS) {
+                    this.cells[x][y].walls.push(walls[i]);
+                }
+            } else {
+                let x, y;    
+                x = walls[i].x;
+                y = walls[i].y;
+                console.log( x + " " + y + " " + x + " " + (y - 1));
+                if(x >= 0 && x < ROWS && y >= 0 && y < COLS) {
+                    this.cells[x][y].walls.push(walls[i]);
+                }
+                x = walls[i].x;
+                y = walls[i].y - 1;
+                if(x >= 0 && x < ROWS && y >= 0 && y < COLS) {
+                    this.cells[x][y].walls.push(walls[i]);
+                }
+            }
+        }
+        console.log(this);
+    }
+
+    displayMaze(canvas_context) {
+        canvas_context.clearRect(0, 0, canvas.width, canvas.height);
+        for(let x = 0; x < ROWS; x++) {
+            for(let y = 0; y < COLS; y++) {
+                this.cells[x][y].displayCell(canvas_context);
+            }
+        }
+    }
+
+    setCellContent(x, y, content) {
+        this.cells[x][y].content = content;
+    }
+
+    possibleMoves(x, y) {
+        if(x < 0 || y < 0 || x > ROWS || y > COLS) {
+            return [];
+        }
+        let result = [];
+        // check up 
+        if(!(this.cells[x][y].walls.some(e => e.x === x && e.y === y && e.direction === 'h'))) {
+            result.push('up');
+        }
+        // check down
+        if(!(this.cells[x][y].walls.some(e => e.x === x+1 && e.y === y && e.direction === 'h'))) {
+            result.push('down');
+        }
+        // check left
+        if(!(this.cells[x][y].walls.some(e => e.x === x && e.y === y && e.direction === 'v'))) {
+            result.push('left');
+        }
+        // check right
+        if(!(this.cells[x][y].walls.some(e => e.x === x && e.y === y+1 && e.direction === 'v'))) {
+            result.push('right');
+        }
+        return result;
+    }
+}
+
+
 $(document).ready(function() {
     let canvas = document.getElementById('canvas');
     let button = document.getElementById('button');
@@ -14,35 +177,13 @@ $(document).ready(function() {
     body.height = 1000;
     let restarts = 0;
     let scoreValue = 0;
-    let currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
+    let currentWalls = borderWalls();
+    let currentMaze = new Maze(currentWalls);
     let ctx = canvas.getContext("2d");
     canvas.setAttribute("height",CANVAS_HEIGHT);
     canvas.setAttribute("width",CANVAS_WIDTH);
 
     ctx.lineWidth = 5;
-
-    // fills the cell (i,j) with the given color
-    function drawSquare(i, j, color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(i * SQUARE_SIZE, j*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
-    }
-
-    // draws a line starting in the top-left color of cell (i,j), direction either "vertical" or "horizontal"
-    function drawWall(i, j, direction, color = "#000000", width = 5) {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = width;
-        if(direction === "vertical") {
-            ctx.beginPath();
-            ctx.moveTo(i*SQUARE_SIZE, j*SQUARE_SIZE);
-            ctx.lineTo((i+1)*SQUARE_SIZE, j*SQUARE_SIZE);
-            ctx.stroke();
-        } else if(direction === "horizontal") {
-            ctx.beginPath();
-            ctx.moveTo(i*SQUARE_SIZE, j*SQUARE_SIZE);
-            ctx.lineTo(i*SQUARE_SIZE, (j+1)*SQUARE_SIZE);
-            ctx.stroke();
-        }
-    }
 
     let playerX = 0;
     let playerY = 0;
@@ -50,157 +191,73 @@ $(document).ready(function() {
     let targetX = Math.floor(Math.random() * ROWS);
     let targetY = Math.floor(Math.random() * COLS);
 
-    currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
-    // display maze
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawSquare(playerX, playerY, "#0000ff");
-    drawSquare(targetX, targetY, "#00ff00");
-    displayMaze(currentMaze);
+    // initialize maze
+    currentMaze = new Maze();
 
+    // set player and target position
+    currentMaze.cells[playerX][playerY].content = 'player';
+    currentMaze.cells[targetX][targetY].content = 'target';
+
+    // display maze
+    currentMaze.displayMaze(ctx);
 
     $("#button").click(function() {
         console.log("clicked");
-        /*
-        drawSquare(8,8,"#ff0000");
-        drawSquare(9,9,"#00ff00");
-        drawWall(8,8,"horizontal", color = "#000000" , 3);
-        */
+
         restarts += 1;
         restart.innerText = "Restarts: " + restarts;
-        // load maze
-        currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
+        
+        // reload maze
+        currentWalls = borderWalls();
+        currentMaze = new Maze(currentWalls, [new Cell(playerX, playerY, 'player'), new Cell(targetX, targetY, 'target')]);
         // display maze
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawSquare(playerX, playerY, "#0000ff");
-        drawSquare(targetX, targetY, "#00ff00");
-        displayMaze(currentMaze);
+        currentMaze.displayMaze(ctx);
     });
 
     // mobile inputs 
     var hammertime = new Hammer(body);
     hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
     hammertime.on('swipeleft swiperight swipeup swipedown', function(ev) {
-        if(ev.type === "swipeup" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
-        if(ev.type === "swipedown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
-        if(ev.type === "swiperight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
-        if(ev.type === "swipeleft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
+        if(ev.type === "swipeup" && currentMaze.possibleMoves(playerX, playerY).includes("up")) playerY -= 1;
+        if(ev.type === "swipedown" && currentMaze.possibleMoves(playerX, playerY).includes("down")) playerY += 1;
+        if(ev.type === "swiperight" && currentMaze.possibleMoves(playerX, playerY).includes("right")) playerX += 1;
+        if(ev.type === "swipeleft" && currentMaze.possibleMoves(playerX, playerY).includes("left")) playerX -= 1;
         update();
     });
 
 
     function update() {
-        // display maze
-        console.log(playerX + " " + playerY);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawSquare(playerX, playerY, "#0000ff");
-        drawSquare(targetX, targetY, "#00ff00");
-        displayMaze(currentMaze);
-        if(playerX === targetX && playerY === targetY) {
 
+        console.log(playerX + " " + playerY);
+        console.log(currentMaze.possibleMoves(playerX, playerY));
+
+        // display maze
+        currentMaze = new Maze(currentWalls, [new Cell(playerX, playerY, 'player'), new Cell(targetX, targetY, 'target')]);
+        currentMaze.displayMaze(ctx);
+        if(playerX === targetX && playerY === targetY) {
             console.log(targetX + " " + targetY);
             scoreValue += 1;
             score.innerText = "Score: " + scoreValue;
 
             // reload maze
-            currentMaze = getRandomMaze(["empty", "wall-left", "wall-up", "wall-both"]);
-
             playerX = 0;
             playerY = 0;
-
             targetX = Math.floor(Math.random() * ROWS);
             targetY = Math.floor(Math.random() * COLS);
-            // display maze again
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawSquare(playerX, playerY, "#0000ff");
-            drawSquare(targetX, targetY, "#00ff00");
-            displayMaze(currentMaze);
+
+            currentWalls = borderWalls();
+            currentMaze = new Maze(currentWalls, [new Cell(playerX, playerY, 'player'), new Cell(targetX, targetY, 'target')]);
+
+            currentMaze.displayMaze(ctx);
         }
     }
 
     document.addEventListener('keyup', (e) => {
-        if(e.code === "ArrowUp" && canMove(currentMaze, playerX, playerY).includes("up")) playerY -= 1;
-        if(e.code === "ArrowDown" && canMove(currentMaze, playerX, playerY).includes("down")) playerY += 1;
-        if(e.code === "ArrowRight" && canMove(currentMaze, playerX, playerY).includes("right")) playerX += 1;
-        if(e.code === "ArrowLeft" && canMove(currentMaze, playerX, playerY).includes("left")) playerX -= 1;
+        if(e.code === "ArrowUp" && currentMaze.possibleMoves(playerX, playerY).includes("up")) playerX -= 1;
+        if(e.code === "ArrowDown" && currentMaze.possibleMoves(playerX, playerY).includes("down")) playerX += 1;
+        if(e.code === "ArrowRight" && currentMaze.possibleMoves(playerX, playerY).includes("right")) playerY += 1;
+        if(e.code === "ArrowLeft" && currentMaze.possibleMoves(playerX, playerY).includes("left")) playerY -= 1;
         
         update();
     });
-
-    function getEmptyMaze() { 
-        let maze = [];
-        for(let i = 0; i <= ROWS; i++){
-            maze.push([]);
-            for(let j = 0; j <= COLS; j++) {
-                maze[i].push("empty");
-            }
-        }
-        return maze;
-    }
-
-    function getRandomMaze(options) {
-        let maze = getEmptyMaze();
-        for(let i = 0; i < maze.length; i++) {
-            for(let j = 0; j < maze[i].length; j++) {
-                maze[i][j] = options[Math.floor(Math.random() * options.length)];
-            }
-        }
-        //console.log(maze);
-        return maze;
-    }
-
-
-    // return possible move directions from cell (i,j)
-    function canMove(maze, i, j) {
-        let directions = [];
-        if(maze?.[i]?.[j] != undefined) {
-            if(!(maze[i][j] === "wall-up" || maze[i][j] === "wall-both") && j > 0 ) {
-                directions.push("up");
-            }
-            if(!(maze[i][j] === "wall-left" || maze[i][j] === "wall-both") && i > 0 ) {
-                directions.push("left");
-            }
-        }
-
-        if(maze?.[i]?.[j+1] != undefined) {
-            if(!(maze[i][j+1] === "wall-up" || maze[i][j+1] === "wall-both") && j < ROWS - 1 ) {
-                directions.push("down");
-            }
-        }
-        if(maze?.[i+1]?.[j] != undefined) {
-            if(!(maze[i+1][j] === "wall-left" || maze[i+1][j] === "wall-both") && i < COLS - 1 ) {
-                directions.push("right");
-            }
-        }
-        return directions;
-    }
-
-
-    function displayMaze(maze) {
-        for(let i = 0; i < maze.length; i++) {
-            for(let j = 0; j < maze[i].length; j++) {
-                //console.log(i + " " + j + " " + canMove(maze,i,j));
-                switch(maze[i][j]) {
-                    case "empty":
-                        drawWall(i,j,"horizontal", color="#eeeeee", 3);
-                        drawWall(i,j,"vertical", color="#eeeeee", 3);
-                        break;
-                    case "wall-up":
-                        drawWall(i,j,"horizontal", color="#eeeeee", 3);
-                        drawWall(i,j,"vertical");
-                        break;
-                    case "wall-left":
-                        drawWall(i,j,"horizontal");
-                        drawWall(i,j,"vertical", color="#eeeeee", 3);
-                        break;
-                    case "wall-both":
-                        drawWall(i,j,"horizontal");
-                        drawWall(i,j,"vertical");
-                        break;
-                    default: 
-                        break;
-                }
-            }
-        }
-    }
-
 });
