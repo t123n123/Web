@@ -175,7 +175,7 @@ $(document).ready(function() {
     let body = document.getElementById('body');
     body.height = 1000;
     let restarts = 0;
-    let scoreValue = 0;
+    let scoreValue = 10;
     let currentWalls = borderWalls();
     let currentMaze = new Maze(currentWalls);
     let ctx = canvas.getContext("2d");
@@ -202,9 +202,11 @@ $(document).ready(function() {
 
     $("#restart_button").click(function() {
         console.log("clicked");
-
-        restarts += 1;
-        restart.innerText = "Restarts: " + restarts;
+        if(scoreValue < 3) {
+            return;
+        }
+        scoreValue -= 3;
+        score.innerText = "Score: " + scoreValue;
         
         // reload maze
         currentWalls = borderWalls();
@@ -215,6 +217,11 @@ $(document).ready(function() {
 
 
     $("#rotate_button").click(function() {
+        if(scoreValue < 2) {
+            return;
+        } 
+        scoreValue -= 2;
+        score.innerText = "Score: " + scoreValue;
         console.log("rotated");
         let new_walls = [];
         for(let i = 0; i < currentWalls.length; i++) {
@@ -243,10 +250,10 @@ $(document).ready(function() {
     var hammertime = new Hammer(body);
     hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
     hammertime.on('swipeleft swiperight swipeup swipedown', function(ev) {
-        if(ev.type === "swipeup" && currentMaze.possibleMoves(playerX, playerY).includes("up")) playerY -= 1;
-        if(ev.type === "swipedown" && currentMaze.possibleMoves(playerX, playerY).includes("down")) playerY += 1;
-        if(ev.type === "swiperight" && currentMaze.possibleMoves(playerX, playerY).includes("right")) playerX += 1;
-        if(ev.type === "swipeleft" && currentMaze.possibleMoves(playerX, playerY).includes("left")) playerX -= 1;
+        if(ev.type === "swipeup" && currentMaze.possibleMoves(playerX, playerY).includes("up")) playerX -= 1;
+        if(ev.type === "swipedown" && currentMaze.possibleMoves(playerX, playerY).includes("down")) playerX += 1;
+        if(ev.type === "swiperight" && currentMaze.possibleMoves(playerX, playerY).includes("right")) playerY += 1;
+        if(ev.type === "swipeleft" && currentMaze.possibleMoves(playerX, playerY).includes("left")) playerY -= 1;
         update();
     });
 
@@ -261,9 +268,12 @@ $(document).ready(function() {
         currentMaze.displayMaze(ctx);
         if(playerX === targetX && playerY === targetY) {
             console.log(targetX + " " + targetY);
-            scoreValue += 1;
+            scoreValue += 5;
             score.innerText = "Score: " + scoreValue;
 
+            if(scoreValue > 99) {
+                alert("Congratulations!");
+            }
             // reload maze
             playerX = 0;
             playerY = 0;
