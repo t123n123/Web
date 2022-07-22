@@ -170,9 +170,8 @@ class Maze{
 
 $(document).ready(function() {
     let canvas = document.getElementById('canvas');
-    let button = document.getElementById('button');
-    let score = document.getElementById('score');
-    let restart = document.getElementById('restart');
+    let score = document.getElementById('score_points');
+    let restart = document.getElementById('restart_points');
     let body = document.getElementById('body');
     body.height = 1000;
     let restarts = 0;
@@ -201,7 +200,7 @@ $(document).ready(function() {
     // display maze
     currentMaze.displayMaze(ctx);
 
-    $("#button").click(function() {
+    $("#restart_button").click(function() {
         console.log("clicked");
 
         restarts += 1;
@@ -213,6 +212,32 @@ $(document).ready(function() {
         // display maze
         currentMaze.displayMaze(ctx);
     });
+
+
+    $("#rotate_button").click(function() {
+        console.log("rotated");
+        let new_walls = [];
+        for(let i = 0; i < currentWalls.length; i++) {
+            let new_wall = currentWalls[i];
+            if(new_wall.direction === 'h') {
+                new_wall.direction = 'v';
+                let old_x = new_wall.x;
+                let old_y = new_wall.y;
+                new_wall.y = COLS - old_x;
+                new_wall.x = old_y;
+                new_walls.push(new_wall);
+            } else {
+                new_wall.direction = 'h';
+                let old_x = new_wall.x;
+                let old_y = new_wall.y;
+                new_wall.y = COLS - old_x - 1;
+                new_wall.x = old_y;
+                new_walls.push(new_wall);
+            }
+        }
+        update();
+    });
+
 
     // mobile inputs 
     var hammertime = new Hammer(body);
