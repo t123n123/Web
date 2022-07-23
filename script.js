@@ -29,7 +29,7 @@ class Wall{
     }
 }
 
-function borderWalls(){
+function generateWalls(probability){
     let walls = [];
     // horizontal
     for(let y = 0; y < COLS; y++) {
@@ -42,22 +42,23 @@ function borderWalls(){
         walls.push(new Wall(x, COLS, 'v'));
     }
 
+    // random internal walls horizontal
     for(let x = 1; x < ROWS; x++) {
         for(let y = 0; y < COLS; y++) {
-            if(Math.random() >= 0.5 ? true : false) {
+            if(Math.random() >= probability ? true : false) {
                 walls.push(new Wall(x, y, 'h'));
             }
         }
     }
 
+    // random internal walls vertical  
     for(let x = 0; x < ROWS; x++) {
         for(let y = 1; y < COLS; y++) {
-            if(Math.random() >= 0.5 ? true : false) {
+            if(Math.random() >= probability ? true : false) {
                 walls.push(new Wall(x, y, 'v'));
             }
         }
     }
-
 
     return walls;
 }
@@ -82,7 +83,7 @@ class Cell{
 }
 
 class Maze{
-    constructor(walls = borderWalls(), cells = []) {
+    constructor(walls = generateWalls(0.5), cells = []) {
         this.cells = [];
         for(let x = 0; x < ROWS; x++) {
             this.cells.push([]);
@@ -176,11 +177,13 @@ $(document).ready(function() {
     body.height = 1000;
     let restarts = 0;
     let scoreValue = 10;
-    let currentWalls = borderWalls();
-    let currentMaze = new Maze(currentWalls);
     let ctx = canvas.getContext("2d");
     canvas.setAttribute("height",CANVAS_HEIGHT);
     canvas.setAttribute("width",CANVAS_WIDTH);
+
+    let wall_probability = 0.5;
+    let currentWalls = generateWalls(wall_probability);
+    let currentMaze = new Maze(currentWalls);
 
     ctx.lineWidth = 5;
 
@@ -209,10 +212,20 @@ $(document).ready(function() {
         score.innerText = "Score: " + scoreValue;
         
         // reload maze
-        currentWalls = borderWalls();
+        currentWalls = generateWalls(wall_probability);
         currentMaze = new Maze(currentWalls, [new Cell(playerX, playerY, 'player'), new Cell(targetX, targetY, 'target')]);
         // display maze
         currentMaze.displayMaze(ctx);
+    });
+
+    $("#reduce_button").click(function() {
+        console.log("click");
+        if(scoreValue < 10) {
+            return; 
+        }
+        scoreValue -= 10;
+        score.innerText = "Score: " + scoreValue;
+        wall_probability += 0.1;
     });
 
 
@@ -280,7 +293,7 @@ $(document).ready(function() {
             targetX = Math.floor(Math.random() * ROWS);
             targetY = Math.floor(Math.random() * COLS);
 
-            currentWalls = borderWalls();
+            currentWalls = generateWalls(wall_probability);
             currentMaze = new Maze(currentWalls, [new Cell(playerX, playerY, 'player'), new Cell(targetX, targetY, 'target')]);
 
             currentMaze.displayMaze(ctx);
